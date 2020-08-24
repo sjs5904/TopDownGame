@@ -9,6 +9,7 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
+/Assets/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
@@ -58,3 +59,10 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+[core]
+ autocrlf = false
+[filter "lfs"]
+ required = true
+ clean = git-lfs clean -- %f
+ smudge = git-lfs smudge -- %f
+ process = git-lfs filter-process
