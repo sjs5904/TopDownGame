@@ -27,6 +27,9 @@ namespace MoreMountains.TopDownEngine
         public float ObstaclesCheckFrequency = 1f;
         /// the coordinates of the last patrol point
         public Vector3 LastReachedPatrolPoint { get; set; }
+        public float waitsec = 1f;
+        private float secToWait;
+        private bool wait;
 
         // private stuff
         protected TopDownController _controller;
@@ -68,6 +71,8 @@ namespace MoreMountains.TopDownEngine
             _currentIndex = 0;
             _indexLastFrame = -1;
             _waitingDelay = 0;
+            secToWait = waitsec;
+            wait = false;
         }
 
 
@@ -103,6 +108,16 @@ namespace MoreMountains.TopDownEngine
                 return;
             }
 
+            if (wait)
+            {
+                _characterMovement.SetHorizontalMovement(0f);
+                _characterMovement.SetVerticalMovement(0f);
+                secToWait -= Time.deltaTime;
+                if (secToWait < 0)
+                    wait = false;
+                return;
+            }
+
             // moves the agent in its current direction
             CheckForObstacles();
 
@@ -111,6 +126,14 @@ namespace MoreMountains.TopDownEngine
             {
                 LastReachedPatrolPoint = _mmPath.CurrentPoint();
                 _waitingDelay = _mmPath.PathElements[_currentIndex].Delay;
+                if (!wait && waitsec > 0)
+                {
+                    secToWait = waitsec;
+                    wait = true;
+                    _indexLastFrame = _currentIndex;
+                    _characterMovement.Deceleration = 0f;
+                    return;
+                }
             }
 
             _direction = _mmPath.CurrentPoint() - this.transform.position;

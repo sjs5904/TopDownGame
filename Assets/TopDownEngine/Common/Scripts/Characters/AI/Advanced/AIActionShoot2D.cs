@@ -174,7 +174,8 @@ namespace MoreMountains.TopDownEngine
         public override void OnExitState()
         {
             base.OnExitState();
-            _characterHandleWeapon.ShootStop();
+            if (_projectileWeapon != null)
+                _characterHandleWeapon.ShootStop();
             _shooting = false;
         }
     }
