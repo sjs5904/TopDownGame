@@ -39,7 +39,8 @@ namespace MoreMountains.TopDownEngine
         protected Collider2D _collider;
         protected float _lastObstacleDetectionTimestamp = 0f;
         protected float _lastDirectionChangeTimestamp = 0f;
-                
+        protected float _waitingDelay = 0f;
+
         /// <summary>
         /// On start we grab our character movement component and pick a random direction
         /// </summary>

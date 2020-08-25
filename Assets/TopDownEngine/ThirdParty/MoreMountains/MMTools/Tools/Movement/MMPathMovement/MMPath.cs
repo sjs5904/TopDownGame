@@ -15,6 +15,7 @@ namespace MoreMountains.Tools
 		public Vector3 PathElementPosition;
 		/// a delay (in seconds) associated to each node
 		public float Delay;
+		public float OffsetRadius;
 	}
 
     /// <summary>
@@ -65,13 +66,16 @@ namespace MoreMountains.Tools
 	    protected Vector3 _finalPosition;
 		protected Vector3 _previousPoint = Vector3.zero;
 	    protected int _currentIndex;
-		protected float _distanceToNextPoint;
 		protected bool _endReached = false;
+		[MMReadOnly]
+		public Vector3 RandomOffset;
+		[MMReadOnly]
+		public float _distanceToNextPoint;
 
 		/// <summary>
-	    /// Initialization
-	    /// </summary>
-	    protected virtual void Start ()
+		/// Initialization
+		/// </summary>
+		protected virtual void Start ()
 		{
 			Initialization ();
 		}
@@ -107,6 +111,7 @@ namespace MoreMountains.Tools
             _currentPoint = GetPathEnumerator();
 			_previousPoint = _currentPoint.Current;
 			_currentPoint.MoveNext();
+			GenerateRandomOffset();
 
 			// initial positioning
 			if (!_originalTransformPositionStatus)
@@ -124,7 +129,7 @@ namespace MoreMountains.Tools
 
         public Vector3 CurrentPoint()
         {
-            return _initialPosition + _currentPoint.Current;
+			return _initialPosition + _currentPoint.Current + RandomOffset;
         }
 
         public Vector3 CurrentPositionRelative()
@@ -159,16 +164,27 @@ namespace MoreMountains.Tools
 			_initialPositionThisFrame=transform.position;
             
 			// we decide if we've reached our next destination or not, if yes, we move our destination to the next point 
-			_distanceToNextPoint = (transform.position - (_originalTransformPosition + _currentPoint.Current)).magnitude;
+			_distanceToNextPoint = (transform.position - (_originalTransformPosition + _currentPoint.Current + RandomOffset)).magnitude;
 			if(_distanceToNextPoint < MinDistanceToGoal)
 			{
 				_previousPoint = _currentPoint.Current;
 				_currentPoint.MoveNext();
+				GenerateRandomOffset();
 			}
 
 			// we determine the current speed		
 			_finalPosition = transform.position;
 		}
+
+		protected virtual void GenerateRandomOffset()
+        {
+			float a = Random.Range(0f, 1f) * 2 * Mathf.PI;
+			float r = PathElements[_currentIndex].OffsetRadius * Mathf.Sqrt(Random.Range(0f, 1f));
+
+			Vector3 temp = new Vector2(r * Mathf.Cos(a), r * Mathf.Sin(a));
+
+			RandomOffset = Vector3.zero + temp;
+        }
 
 		/// <summary>
 		/// Returns the current target point in the path
@@ -243,8 +259,10 @@ namespace MoreMountains.Tools
 		/// </summary>
 		public virtual void ChangeDirection()
 		{
+			_previousPoint = _currentPoint.Current;
 			_direction = - _direction;
 			_currentPoint.MoveNext();
+			GenerateRandomOffset();
 		}
 
 		/// <summary>
@@ -279,6 +297,8 @@ namespace MoreMountains.Tools
 			{
 				// we draw a green point 
 				MMDebug.DrawGizmoPoint(_originalTransformPosition+PathElements[i].PathElementPosition,0.2f,Color.green);
+				Gizmos.color = Color.blue;
+				Gizmos.DrawWireSphere(_originalTransformPosition+PathElements[i].PathElementPosition, PathElements[i].OffsetRadius);
 
 				// we draw a line towards the next point in the path
 				if ((i+1)<PathElements.Count)

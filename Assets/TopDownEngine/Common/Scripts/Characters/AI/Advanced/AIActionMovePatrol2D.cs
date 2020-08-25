@@ -14,7 +14,7 @@ namespace MoreMountains.TopDownEngine
     [RequireComponent(typeof(CharacterOrientation2D))]
     [RequireComponent(typeof(CharacterMovement))]
     public class AIActionMovePatrol2D : AIAction
-    {        
+    {
         [Header("Obstacle Detection")]
         /// If set to true, the agent will change direction when hitting an obstacle
         [Tooltip("If set to true, the agent will change direction when hitting an obstacle")]
@@ -27,9 +27,6 @@ namespace MoreMountains.TopDownEngine
         public float ObstaclesCheckFrequency = 1f;
         /// the coordinates of the last patrol point
         public Vector3 LastReachedPatrolPoint { get; set; }
-        public float waitsec = 1f;
-        private float secToWait;
-        private bool wait;
 
         // private stuff
         protected TopDownController _controller;
@@ -71,8 +68,6 @@ namespace MoreMountains.TopDownEngine
             _currentIndex = 0;
             _indexLastFrame = -1;
             _waitingDelay = 0;
-            secToWait = waitsec;
-            wait = false;
         }
 
 
@@ -105,16 +100,7 @@ namespace MoreMountains.TopDownEngine
             {
                 _characterMovement.SetHorizontalMovement(0f);
                 _characterMovement.SetVerticalMovement(0f);
-                return;
-            }
-
-            if (wait)
-            {
-                _characterMovement.SetHorizontalMovement(0f);
-                _characterMovement.SetVerticalMovement(0f);
-                secToWait -= Time.deltaTime;
-                if (secToWait < 0)
-                    wait = false;
+                _characterMovement.Deceleration = 0f;
                 return;
             }
 
@@ -126,14 +112,8 @@ namespace MoreMountains.TopDownEngine
             {
                 LastReachedPatrolPoint = _mmPath.CurrentPoint();
                 _waitingDelay = _mmPath.PathElements[_currentIndex].Delay;
-                if (!wait && waitsec > 0)
-                {
-                    secToWait = waitsec;
-                    wait = true;
-                    _indexLastFrame = _currentIndex;
-                    _characterMovement.Deceleration = 0f;
-                    return;
-                }
+                _indexLastFrame = _currentIndex;
+                return;
             }
 
             _direction = _mmPath.CurrentPoint() - this.transform.position;
@@ -193,7 +173,7 @@ namespace MoreMountains.TopDownEngine
 
             _lastObstacleDetectionTimestamp = Time.time;
         }
-        
+
         /// <summary>
         /// Changes the current movement direction
         /// </summary>
@@ -202,7 +182,7 @@ namespace MoreMountains.TopDownEngine
             _direction = -_direction;
             _mmPath.ChangeDirection();
         }
-        
+
         /// <summary>
         /// When reviving we make sure our directions are properly setup
         /// </summary>
@@ -212,7 +192,7 @@ namespace MoreMountains.TopDownEngine
             {
                 _direction = _orientation2D.IsFacingRight ? Vector2.right : Vector2.left;
             }
-            
+
             transform.localScale = _initialScale;
             transform.position = _startPosition;
         }
